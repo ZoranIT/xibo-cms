@@ -7,21 +7,26 @@
             <title>Yellow Flowers</title>
             <description>Yellow Flowers in the Summer</description>
             <enclosure url="http://localhost/rss/image1.jpg" type="image/jpeg"/>
+            <category domain="desk">Yellow Flowers</category>
+            <category domain="desk">YF</category>
         </item>
         <item>
             <title>Clock Mechanism</title>
             <description>A close-up shot of the mechanism in a clock</description>
             <enclosure url="http://localhost/rss/image2.jpg" type="image/jpeg"/>
+            <category>Mechanism</category>
         </item>
         <item>
             <title>Antipasti</title>
             <description>Tasty antipasti - tomato, basil and mozzarella</description>
             <enclosure url="http://localhost/rss/image3.jpg" type="image/jpeg"/>
+            <category>Antipasti</category>
         </item>
         <item>
             <title>Reptile</title>
             <description>A colourful reptile</description>
             <enclosure url="http://localhost/rss/image4.jpg" type="image/jpeg"/>
+            <category>Reptile</category>
         </item>
     </channel>
 </rss>
