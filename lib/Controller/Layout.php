@@ -436,6 +436,12 @@ class Layout extends Base
             );
         }
 
+        // Do we have an 'Enable Layout Stats Collection?' checkbox?
+        // If not, we fall back to the default Stats Collection setting.
+        if (!$sanitizedParams->hasParam('enableStat')) {
+            $enableStat = $this->getConfig()->getSetting('LAYOUT_STATS_ENABLED_DEFAULT');
+        }
+
         // Set layout enableStat flag
         $layout->enableStat = $enableStat;
 
@@ -2995,6 +3001,31 @@ class Layout extends Base
                 $draft->publishDraft();
                 $draft->load();
 
+                // Make sure actions from all levels are valid before allowing publish
+                // Layout Actions
+                foreach ($draft->actions as $action) {
+                    $action->validate();
+                }
+
+                /** @var Region[] $allRegions */
+                $allRegions = array_merge($draft->regions, $draft->drawers);
+
+                // Region Actions
+                foreach ($allRegions as $region) {
+                    // Interactive Actions on Region
+                    foreach ($region->actions as $action) {
+                        $action->validate();
+                    }
+
+                    // Widget Actions
+                    foreach ($region->getPlaylist()->widgets as $widget) {
+                        // Interactive Actions on Widget
+                        foreach ($widget->actions as $action) {
+                            $action->validate();
+                        }
+                    }
+                }
+
                 // We also build the XLF at this point, and if we have a problem we prevent publishing and raise as an
                 // error message
                 $draft->xlfToDisk(['notify' => true, 'exceptionOnError' => true, 'exceptionOnEmptyRegion' => false]);
@@ -3539,7 +3570,8 @@ class Layout extends Base
         $layout->schemaVersion = Environment::$XLF_VERSION;
         $layout->folderId = ($type === 'media') ? $media->folderId : $playlist->folderId;
 
-        $layout->save();
+        // Media files have their own validation so we can skip
+        $layout->save(['validate' => false]);
 
         $draft = $this->layoutFactory->checkoutLayout($layout);
 
@@ -3589,6 +3621,12 @@ class Layout extends Base
 
         // Calculate the duration
         $widget->calculateDuration($module);
+
+        // Set loop for media items with custom duration
+        if ($type === 'media' && $media->mediaType === 'video' && $itemDuration > $media->duration) {
+            $widget->setOptionValue('loop', 'attrib', 1);
+            $widget->save();
+        }
 
         // Assign the widget to the playlist
         $region->getPlaylist()->assignWidget($widget);

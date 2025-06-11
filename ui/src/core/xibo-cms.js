@@ -262,7 +262,8 @@ window.XiboInitialise = function(scope, options) {
   $(scope + ' .pagedSelect select.form-control').each(function(_idx, el) {
     const $target = $(el);
     const anchor = $target.data('anchorElement');
-    const inModal = $(scope).hasClass('modal');
+    const inModal = $(scope).hasClass('modal') ||
+        $(scope).parents('.modal').length > 0;
     if (anchor !== undefined && anchor !== '') {
       makePagedSelect($target, $(anchor));
     } else if (inModal) {
@@ -315,6 +316,7 @@ window.XiboInitialise = function(scope, options) {
         initialize: false,
         remote: {
           url: autoCompleteUrl,
+          cache: false,
           prepare: function(query, settings) {
             settings.data = {tag: query};
             return settings;
@@ -1655,7 +1657,7 @@ window.XiboFormRender = function(sourceObj, data = null) {
             } else {
               $('#' + fieldAction.field).on(fieldAction.trigger, function(ev) {
                 // Process the actions straight away.
-                const fieldVal = $(ev.currentState).val();
+                const fieldVal = $(ev.currentTarget).val();
 
                 // console.log("Init action with value " + fieldVal);
                 let valueMatch = false;
@@ -2611,26 +2613,17 @@ window.makePagedSelect = function(
       type: 'GET',
       data: dataObj,
     }).then(function(data) {
-      // Do we need to check if it's selected
-      let checkSelected = false;
-
       // If we have a custom data formatter
       if (
         dataFormatter &&
         typeof dataFormatter === 'function'
       ) {
         data = dataFormatter(data);
-        checkSelected = true;
       }
 
       // create the option and append to Select2
       data.data.forEach((object) => {
-        let isSelected = true;
-
-        // Check if it's selected if needed
-        if (checkSelected) {
-          isSelected = (initialValue == object[idProperty]);
-        }
+        const isSelected = (initialValue == object[idProperty]);
 
         // Only had if the option is selected
         if (isSelected) {
@@ -2962,6 +2955,15 @@ window.updateDatePicker = function($element, date, format, triggerChange) {
         $element[0]._flatpickr.setDate(date, triggerChange, format);
       } else {
         $element[0]._flatpickr.setDate(date);
+      }
+    } else {
+      // If flatpickr is (still) not initialised
+      $element.val(
+        (!moment(date, format).isValid()) ?
+          '' : moment(date, format).format(systemDateFormat),
+      );
+      if (triggerChange) {
+        $element.trigger('change');
       }
     }
   } else if (calendarType == 'Jalali') {

@@ -401,6 +401,12 @@ Layout.prototype.checkout = function() {
       lD.editorContainer.removeClass('view-mode');
       lD.editorContainer.find('#read-only-message').remove();
 
+      // If we're in interactive mode
+      // move back to edit mode
+      if (lD.interactiveMode) {
+        lD.toggleInteractiveMode(false, false);
+      }
+
       // Reload layout
       lD.reloadData(res.data,
         {
@@ -460,7 +466,8 @@ Layout.prototype.publish = function() {
         // Redirect to the new published layout ( read only mode )
         window.location.href =
           urlsForApi.layout.designer.url.replace(
-            ':id', res.data.layoutId) + '?vM=1';
+            ':id', res.data.layoutId) + '?vM=1' +
+            (lD.templateEditMode ? '&isTemplateEditor=1' : '');
       });
     } else {
       lD.common.hideLoadingScreen();
